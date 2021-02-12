@@ -1,6 +1,6 @@
 class Handler {
-    constructor(a) {
-        this.oldgroupsID = a;
+    constructor() {
+        this.oldgroupsID;
         this.tabsOld;
         this.tabsCreated;
     };
@@ -27,16 +27,15 @@ class Handler {
     }
 
     grouper() {
-        console.log("Paused");
         this.OldgroupsID.forEach((group) => {
             var indexes = {};
-            tabsOld.forEach(tab => {
-                if (tab.groupId == "") {} else if (groups.groupId === tab.groupId) {
+            this.tabsOld.forEach(tab => {
+                if (tab.groupId == "") {} else if (group.groupId === tab.groupId) {
                     indexes += tab.index;
                 }
             });
             var toGroup = {};
-            tabsCreated.forEach(tNew => {
+            this.tabsCreated.forEach(tNew => {
                 indexes.forEach(i => {
                     if (i === tNew) {
                         toGroup += tNew.TAB_ID_NONE;
@@ -48,13 +47,28 @@ class Handler {
     }
 };
 
-isPaused = false;
+var isPaused = false;
 
 this.handler = new Handler();
+
+
+function waitForIt() {
+    console.log(this.isPaused);
+    if (isPaused) {
+        console.log("Aspettando");
+        setTimeout(function() { waitForIt() }, 100);
+    } else {
+        console.log('fatto');
+        console.log("Grouping started");
+        this.handler.grouper();
+        console.log("Grouping ended");
+    };
+}
 
 function groupSetup(groups) {
     console.log(groups);
     this.handler.setOldgroupsID(groups);
+    console.log('Retrieved groups');
 }
 
 function tabsSetup(tabs) {
@@ -69,36 +83,32 @@ function tabsSetup(tabs) {
         }
         chrome.tabs.create(createProperty, (tab) => {
             tabsCreated += tab;
+            console.log("Added");
         });
     });
+    console.log("Finish");
     this.handler.setTabsCreated(tabsCreated);
-    console.log('salve');
+    console.log('Retrieved tabs');
     isPaused = false;
 }
 
 function setup() {
     isPaused = true;
+    waitForIt();
+    console.log('Retiving groups');
     chrome.storage.local.get(['groups'], ({ groups }) => {
         groupSetup(groups);
     });
+    console.log('Retiving tabs');
     chrome.storage.local.get(['tabs'], ({ tabs }) => {
         tabsSetup(tabs);
     });
 }
 
 chrome.windows.onCreated.addListener(() => {
-    console.log(isPaused);
+    console.log("Setup started");
     setup();
-
-    function waitForIt() {
-        if (isPaused) {
-            console.log(isPaused);
-            setTimeout(function() { waitForIt() }, 100);
-        } else {
-            console.log('fatto');
-            this.handler.grouper();
-        };
-    }
+    console.log("Setup ended");
 });
 
 chrome.tabGroups.onCreated.addListener(() => {
