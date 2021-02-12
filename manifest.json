@@ -1,0 +1,10 @@
+{
+    "name": "Group saver",
+    "description": "This extension will automatically save your tab groups",
+    "version": "1.0",
+    "manifest_version": 3,
+    "background": {
+        "service_worker": "background.js"
+    },
+    "permissions": ["tabs", "storage", "tabGroups"]
+}
